@@ -16,3 +16,17 @@ export async function getActivity(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
+
+export async function postActivityBooking(req: AuthenticatedRequest, res: Response) {
+  const { activityId } = req.params;
+  const { userId } = req;
+
+  try {
+    const activityBooking = await activityService.postActivitiesBooking(userId, Number(activityId));
+    return res.status(httpStatus.OK).send(activityBooking);
+  } catch (error) {
+    if (error.name === "CannotBookingError") return res.sendStatus(httpStatus.FORBIDDEN);
+    if (error.name === "BadRequestError") return res.sendStatus(httpStatus.BAD_REQUEST);
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}

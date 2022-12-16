@@ -3,6 +3,7 @@ import set from "date-fns/set";
 import faker from "@faker-js/faker";
 import { createEvent } from "./events-factory";
 import { createPlace } from "./place-factory";
+import { createUser } from "./users-factory";
 
 export async function createActivity(eventId?: number, placeId?: number) {
   const incomingEvent = eventId || (await createEvent()).id;
@@ -15,6 +16,16 @@ export async function createActivity(eventId?: number, placeId?: number) {
       eventId: incomingEvent,
       startTime: set(new Date(), { hours: 12, minutes: 30 }),
       endTime: set(new Date(), { hours: 15, minutes: 30 }),
+    },
+  });
+}
+
+export async function createActivityBooking(activityId: number, userId?: number) {
+  const incomingUser = userId || (await createUser()).id;
+  return prisma.activityBooking.create({
+    data: {
+      userId: incomingUser,
+      activityId: activityId,
     },
   });
 }

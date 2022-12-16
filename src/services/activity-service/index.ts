@@ -14,6 +14,19 @@ async function getActivities(userId: number, eventId: number) {
   return activities;
 }
 
+async function postActivitiesBooking(userId: number, activityId: number) {
+  await checkTicketTypePaid(userId);
+  if (isNaN(activityId) || activityId < 1) throw badRequestError();
+
+  const activity = await activityRepository.findActivityById(activityId);
+  await checkActivityCapacity(activity.id, activity.capacity);
+
+  const newActivityBooking = await activityRepository.createActivityBooking(activityId, userId);
+  return {
+    activityBookingId: newActivityBooking.id,
+  };
+}
+
 async function checkTicketTypePaid(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) throw cannotBookingError();
@@ -23,8 +36,15 @@ async function checkTicketTypePaid(userId: number) {
   if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote) throw cannotBookingError();
 }
 
+async function checkActivityCapacity(activityId: number, capacity: number) {
+  const activityBooking = await activityRepository.findActivityBooking(activityId);
+
+  if (capacity === activityBooking.length) throw cannotBookingError();
+}
+
 const activityService = {
   getActivities,
+  postActivitiesBooking,
 };
 
 export default activityService;
