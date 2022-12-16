@@ -7,6 +7,7 @@ async function findActivities(eventId: number) {
     },
     include: {
       Place: true,
+      ActivityBooking: true,
     },
   });
 }

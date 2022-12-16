@@ -139,6 +139,7 @@ describe("GET /activity", () => {
         const place = await createPlace();
 
         const activity = await createActivity(event.id, place.id);
+        const activityBooking = await createActivityBooking(activity.id, user.id);
         const response = await server.get(`/activity/${event.id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.OK);
@@ -155,6 +156,15 @@ describe("GET /activity", () => {
               createdAt: place.createdAt.toISOString(),
               updatedAt: place.updatedAt.toISOString(),
             },
+            ActivityBooking: [
+              {
+                id: activityBooking.id,
+                userId: activityBooking.userId,
+                activityId: activityBooking.activityId,
+                createdAt: activityBooking.createdAt.toISOString(),
+                updatedAt: activityBooking.updatedAt.toISOString(),
+              },
+            ],
             startTime: expect.any(String || Date),
             endTime: expect.any(String || Date),
             createdAt: activity.createdAt.toISOString(),
