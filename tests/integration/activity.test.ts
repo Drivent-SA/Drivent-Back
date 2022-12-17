@@ -165,6 +165,7 @@ describe("GET /activity", () => {
                 updatedAt: activityBooking.updatedAt.toISOString(),
               },
             ],
+            date: expect.any(String || Date),
             startTime: expect.any(String || Date),
             endTime: expect.any(String || Date),
             createdAt: activity.createdAt.toISOString(),
