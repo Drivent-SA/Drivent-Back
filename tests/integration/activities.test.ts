@@ -5,7 +5,6 @@ import httpStatus from "http-status";
 import supertest from "supertest";
 import {
   createEnrollmentWithAddress,
-  createEvent,
   createTicket,
   createTicketType,
   createTicketTypeRemote,
@@ -14,7 +13,7 @@ import {
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 import { TicketStatus } from "@prisma/client";
-import { createActivity, createActivityBooking } from "../factories/activity-factory";
+import { createActivity, createActivityBooking } from "../factories/activities-factory";
 import { createPlace } from "../factories/place-factory";
 
 beforeAll(async () => {
@@ -27,9 +26,9 @@ beforeEach(async () => {
 
 const server = supertest(app);
 
-describe("GET /activity", () => {
+describe("GET /activities", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.get("/activity/:eventId");
+    const response = await server.get("/activities");
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -37,7 +36,7 @@ describe("GET /activity", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.get("/activity/:eventId").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -46,18 +45,18 @@ describe("GET /activity", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.get("/activity/:eventId").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 403 if user has not enrollment", async () => {
+    it("should respond with status 403 if user has not enrolled yet", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       await createTicketTypeWithHotel();
 
-      const response = await server.get("/activity/:eventId").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
@@ -69,7 +68,7 @@ describe("GET /activity", () => {
       const ticketType = await createTicketType();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
 
-      const response = await server.get("/activity/:eventId").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
       expect(response.statusCode).toBe(httpStatus.FORBIDDEN);
     });
@@ -81,66 +80,23 @@ describe("GET /activity", () => {
       const ticketType = await createTicketTypeRemote();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
 
-      const response = await server.get("/activity/:eventId").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
       expect(response.statusCode).toBe(httpStatus.FORBIDDEN);
     });
 
     describe("when TicketType is valid", () => {
-      it("should respond with status 400 if the eventId params isn't a number", async () => {
-        const user = await createUser();
-        const token = await generateValidToken(user);
-        const enrollment = await createEnrollmentWithAddress(user);
-        const ticketType = await createTicketTypeWithHotel();
-        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-
-        const word = faker.name.firstName();
-
-        const response = await server.get(`/activity/${word}`).set("Authorization", `Bearer ${token}`);
-
-        expect(response.statusCode).toBe(httpStatus.BAD_REQUEST);
-      });
-
-      it("should respond with status 400 if the eventId params isn't valid", async () => {
-        const user = await createUser();
-        const token = await generateValidToken(user);
-        const enrollment = await createEnrollmentWithAddress(user);
-        const ticketType = await createTicketTypeWithHotel();
-        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-
-        const number = 0;
-
-        const response = await server.get(`/activity/${number}`).set("Authorization", `Bearer ${token}`);
-
-        expect(response.statusCode).toBe(httpStatus.BAD_REQUEST);
-      });
-
-      it("should respond with status 404 if the eventId params doesn't exist", async () => {
-        const user = await createUser();
-        const token = await generateValidToken(user);
-        const enrollment = await createEnrollmentWithAddress(user);
-        const ticketType = await createTicketTypeWithHotel();
-        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-
-        const number = faker.datatype.number({ min: 50 });
-
-        const response = await server.get(`/activity/${number}`).set("Authorization", `Bearer ${token}`);
-
-        expect(response.statusCode).toBe(httpStatus.NOT_FOUND);
-      });
-
       it("should respond with status 200 and the activities", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const event = await createEvent();
         const place = await createPlace();
 
-        const activity = await createActivity(event.id, place.id);
+        const activity = await createActivity(place.id);
         const activityBooking = await createActivityBooking(activity.id, user.id);
-        const response = await server.get(`/activity/${event.id}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.OK);
         expect(response.body).toEqual([
@@ -148,7 +104,6 @@ describe("GET /activity", () => {
             id: activity.id,
             title: activity.title,
             capacity: activity.capacity,
-            eventId: activity.eventId,
             placeId: activity.placeId,
             Place: {
               id: place.id,
@@ -177,9 +132,9 @@ describe("GET /activity", () => {
   });
 });
 
-describe("POST /activity/:activityId", () => {
+describe("POST /activities/:activityId", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.post("/activity/:activityId");
+    const response = await server.post("/activities/:activityId");
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -187,7 +142,7 @@ describe("POST /activity/:activityId", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.post("/activity/:activityId").set("Authorization", `Bearer ${token}`);
+    const response = await server.post("/activities/:activityId").set("Authorization", `Bearer ${token}`);
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -196,18 +151,18 @@ describe("POST /activity/:activityId", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.post("/activity/:activityId").set("Authorization", `Bearer ${token}`);
+    const response = await server.post("/activities/:activityId").set("Authorization", `Bearer ${token}`);
 
     expect(response.statusCode).toBe(httpStatus.UNAUTHORIZED);
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 403 if user has not enrollment", async () => {
+    it("should respond with status 403 if user has not enrolled yet", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       await createTicketTypeWithHotel();
 
-      const response = await server.post("/activity/:activityId").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/activities/:activityId").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
@@ -219,7 +174,7 @@ describe("POST /activity/:activityId", () => {
       const ticketType = await createTicketType();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
 
-      const response = await server.post("/activity/:activityId").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/activities/:activityId").set("Authorization", `Bearer ${token}`);
 
       expect(response.statusCode).toBe(httpStatus.FORBIDDEN);
     });
@@ -231,7 +186,7 @@ describe("POST /activity/:activityId", () => {
       const ticketType = await createTicketTypeRemote();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
 
-      const response = await server.post("/activity/:activityId").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/activities/:activityId").set("Authorization", `Bearer ${token}`);
 
       expect(response.statusCode).toBe(httpStatus.FORBIDDEN);
     });
@@ -246,7 +201,7 @@ describe("POST /activity/:activityId", () => {
 
         const word = faker.name.firstName();
 
-        const response = await server.post(`/activity/${word}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.post(`/activities/${word}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.BAD_REQUEST);
       });
@@ -260,7 +215,7 @@ describe("POST /activity/:activityId", () => {
 
         const number = 0;
 
-        const response = await server.post(`/activity/${number}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.post(`/activities/${number}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.BAD_REQUEST);
       });
@@ -274,7 +229,7 @@ describe("POST /activity/:activityId", () => {
 
         const number = faker.datatype.number({ min: 50 });
 
-        const response = await server.post(`/activity/${number}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.post(`/activities/${number}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.NOT_FOUND);
       });
@@ -285,15 +240,14 @@ describe("POST /activity/:activityId", () => {
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const event = await createEvent();
         const place = await createPlace();
 
-        const activity = await createActivity(event.id, place.id);
+        const activity = await createActivity(place.id);
 
         for (let i = 0; i < activity.capacity; i++) {
           await createActivityBooking(activity.id);
         }
-        const response = await server.post(`/activity/${activity.id}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.post(`/activities/${activity.id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.FORBIDDEN);
       });
@@ -304,12 +258,11 @@ describe("POST /activity/:activityId", () => {
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const event = await createEvent();
         const place = await createPlace();
 
-        const activity = await createActivity(event.id, place.id);
+        const activity = await createActivity(place.id);
 
-        const response = await server.post(`/activity/${activity.id}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.post(`/activities/${activity.id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(httpStatus.OK);
         expect(response.body).toEqual({
