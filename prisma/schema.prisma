@@ -140,26 +140,23 @@ model Booking {
   updatedAt DateTime @updatedAt
 }
 
-model Place {
-  id        Int        @id @default(autoincrement())
-  name      String     @db.VarChar(255)
-  Activity  Activity[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
 model Activity {
   id              Int               @id @default(autoincrement())
   title           String            @db.VarChar(255)
   capacity        Int
-  Place           Place             @relation(fields: [placeId], references: [id])
-  placeId         Int
+  place           PlaceEnum
   date            DateTime          @db.Date()
   startTime       DateTime          @db.Time(6)
   endTime         DateTime          @db.Time(6)
   ActivityBooking ActivityBooking[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+}
+
+enum PlaceEnum {
+  AUDITORIO_PRINCIPAL
+  AUDITORIO_LATERAL
+  SALA_DE_WORKSHOP
 }
 
 model ActivityBooking {
