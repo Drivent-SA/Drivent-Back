@@ -157,6 +157,7 @@ model Activity {
   placeId         Int
   Event           Event             @relation(fields: [eventId], references: [id])
   eventId         Int
+  date            DateTime          @db.Date()
   startTime       DateTime          @db.Time(6)
   endTime         DateTime          @db.Time(6)
   ActivityBooking ActivityBooking[]
