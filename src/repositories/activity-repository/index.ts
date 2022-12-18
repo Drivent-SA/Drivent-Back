@@ -1,10 +1,7 @@
 import { prisma } from "@/config";
 
-async function findActivities(eventId: number) {
+async function findActivities() {
   return await prisma.activity.findMany({
-    where: {
-      eventId,
-    },
     include: {
       Place: true,
       ActivityBooking: true,
@@ -37,20 +34,11 @@ async function createActivityBooking(activityId: number, userId: number) {
   });
 }
 
-async function findPlaceById(id: number) {
-  return await prisma.place.findFirst({
-    where: {
-      id,
-    },
-  });
-}
-
 const activityRepository = {
   findActivities,
   findActivityById,
   findActivityBooking,
   createActivityBooking,
-  findPlaceById,
 };
 
 export default activityRepository;
