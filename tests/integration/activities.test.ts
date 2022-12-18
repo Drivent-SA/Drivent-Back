@@ -86,6 +86,19 @@ describe("GET /activities", () => {
     });
 
     describe("when TicketType is valid", () => {
+      it("should respond with status 200 and an empty array when there are no activities", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+        const ticketType = await createTicketTypeWithHotel();
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+
+        const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
+
+        expect(response.statusCode).toBe(httpStatus.OK);
+        expect(response.body).toEqual([]);
+      });
+
       it("should respond with status 200 and the activities", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);

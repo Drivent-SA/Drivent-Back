@@ -1,4 +1,4 @@
-import { cannotBookingError, notFoundError } from "@/errors";
+import { cannotBookingError } from "@/errors";
 import { badRequestError } from "@/errors/bad-request-error";
 import activityRepository from "@/repositories/activity-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
@@ -9,7 +9,6 @@ async function getActivities(userId: number) {
 
   const activities = await activityRepository.findActivities();
 
-  if (activities.length === 0) throw notFoundError();
   return activities;
 }
 

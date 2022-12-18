@@ -34,20 +34,11 @@ async function createActivityBooking(activityId: number, userId: number) {
   });
 }
 
-async function findPlaceById(id: number) {
-  return await prisma.place.findFirst({
-    where: {
-      id,
-    },
-  });
-}
-
 const activityRepository = {
   findActivities,
   findActivityById,
   findActivityBooking,
   createActivityBooking,
-  findPlaceById,
 };
 
 export default activityRepository;
