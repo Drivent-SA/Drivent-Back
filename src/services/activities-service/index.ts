@@ -4,11 +4,10 @@ import activityRepository from "@/repositories/activity-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 
-async function getActivities(userId: number, eventId: number) {
+async function getActivities(userId: number) {
   await checkTicketTypePaid(userId);
-  if (isNaN(eventId) || eventId < 1) throw badRequestError();
 
-  const activities = await activityRepository.findActivities(eventId);
+  const activities = await activityRepository.findActivities();
 
   if (activities.length === 0) throw notFoundError();
   return activities;
@@ -42,9 +41,9 @@ async function checkActivityCapacity(activityId: number, capacity: number) {
   if (capacity === activityBooking.length) throw cannotBookingError();
 }
 
-const activityService = {
+const activitiesService = {
   getActivities,
   postActivitiesBooking,
 };
 
-export default activityService;
+export default activitiesService;

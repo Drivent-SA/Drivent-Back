@@ -1,10 +1,7 @@
 import { prisma } from "@/config";
 
-async function findActivities(eventId: number) {
+async function findActivities() {
   return await prisma.activity.findMany({
-    where: {
-      eventId,
-    },
     include: {
       Place: true,
       ActivityBooking: true,
