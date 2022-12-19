@@ -14,7 +14,6 @@ import {
 import { cleanDb, generateValidToken } from "../helpers";
 import { TicketStatus } from "@prisma/client";
 import { createActivity, createActivityBooking } from "../factories/activities-factory";
-import { createPlace } from "../factories/place-factory";
 
 beforeAll(async () => {
   await init();
@@ -105,9 +104,8 @@ describe("GET /activities", () => {
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const place = await createPlace();
 
-        const activity = await createActivity(place.id);
+        const activity = await createActivity();
         const activityBooking = await createActivityBooking(activity.id, user.id);
         const response = await server.get("/activities").set("Authorization", `Bearer ${token}`);
 
@@ -117,13 +115,7 @@ describe("GET /activities", () => {
             id: activity.id,
             title: activity.title,
             capacity: activity.capacity,
-            placeId: activity.placeId,
-            Place: {
-              id: place.id,
-              name: place.name,
-              createdAt: place.createdAt.toISOString(),
-              updatedAt: place.updatedAt.toISOString(),
-            },
+            place: activity.place,
             ActivityBooking: [
               {
                 id: activityBooking.id,
@@ -253,9 +245,8 @@ describe("POST /activities/:activityId", () => {
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const place = await createPlace();
 
-        const activity = await createActivity(place.id);
+        const activity = await createActivity();
 
         for (let i = 0; i < activity.capacity; i++) {
           await createActivityBooking(activity.id);
@@ -271,9 +262,8 @@ describe("POST /activities/:activityId", () => {
         const enrollment = await createEnrollmentWithAddress(user);
         const ticketType = await createTicketTypeWithHotel();
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        const place = await createPlace();
 
-        const activity = await createActivity(place.id);
+        const activity = await createActivity();
 
         const response = await server.post(`/activities/${activity.id}`).set("Authorization", `Bearer ${token}`);
 
