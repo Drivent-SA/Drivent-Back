@@ -3,7 +3,6 @@ import { prisma } from "@/config";
 async function findActivities() {
   return await prisma.activity.findMany({
     include: {
-      Place: true,
       ActivityBooking: true,
     },
   });
