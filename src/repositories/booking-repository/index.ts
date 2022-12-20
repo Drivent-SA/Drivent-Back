@@ -29,8 +29,18 @@ async function findByUserId(userId: number) {
     where: {
       userId,
     },
-    include: {
-      Room: true,
+    select: {
+      id: true,
+      userId: true,
+      Room: {
+        select: {
+          id: true,
+          name: true,
+          capacity: true,
+          Hotel: true,
+          Booking: true
+        }
+      }
     }
   });
 }
