@@ -21,6 +21,21 @@ async function signIn(params: SignInParams): Promise<SignInResult> {
   };
 }
 
+async function logInWithOauth(email: string) {
+  const findUser = await userRepository.findByEmail(email);
+
+  if (!findUser) {
+    await userRepository.create({ email });
+  }
+  const user = await userRepository.findByEmail(email);
+  const token = await createSession(user.id);
+
+  return {
+    user: exclude(user, "password"),
+    token
+  };
+}
+
 async function getUserOrFail(email: string): Promise<GetUserOrFailResult> {
   const user = await userRepository.findByEmail(email, { id: true, email: true, password: true });
   if (!user) throw invalidCredentialsError();
@@ -54,6 +69,7 @@ type GetUserOrFailResult = Pick<User, "id" | "email" | "password">;
 
 const authenticationService = {
   signIn,
+  logInWithOauth
 };
 
 export default authenticationService;

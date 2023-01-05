@@ -12,3 +12,15 @@ export async function singInPost(req: Request, res: Response) {
     return res.status(httpStatus.UNAUTHORIZED).send({});
   }
 }
+
+export async function logInWithOauthPost(req: Request, res: Response) {
+  const { email }: { email: string } = req.body;
+
+  try {
+    const result = await authenticationService.logInWithOauth(email);
+
+    return res.status(httpStatus.OK).send(result);
+  } catch (error) {
+    return res.status(httpStatus.UNAUTHORIZED).send({});
+  }
+}
