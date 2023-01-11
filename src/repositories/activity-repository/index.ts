@@ -1,11 +1,26 @@
-import { prisma } from "@/config";
+import { prisma, redis } from "@/config";
+import { Activity, ActivityBooking } from "@prisma/client";
 
 async function findActivities() {
-  return await prisma.activity.findMany({
-    include: {
-      ActivityBooking: true,
-    },
-  });
+  let activities: (Activity & {
+    ActivityBooking: ActivityBooking[];
+  })[] = JSON.parse(await redis.get("activities"));
+
+  if (!activities) {
+    const day = 86400;
+
+    activities = await prisma.activity.findMany({
+      include: {
+        ActivityBooking: true,
+      },
+    });
+
+    await redis.set("activities", JSON.stringify(activities), {
+      EX: day,
+    });
+  }
+
+  return activities;
 }
 
 async function findActivityById(id: number) {
