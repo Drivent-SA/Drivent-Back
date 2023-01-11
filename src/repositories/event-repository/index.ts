@@ -8,10 +8,9 @@ async function findFirst() {
     const day = 86400;
 
     event = await prisma.event.findFirst();
-    
+
     await redis.set("event", JSON.stringify(event), {
       EX: day,
-      NX: true
     });
   }
 

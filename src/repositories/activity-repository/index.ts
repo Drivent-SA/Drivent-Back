@@ -8,7 +8,7 @@ async function findActivities() {
 
   if (!activities) {
     const day = 86400;
-    
+
     activities = await prisma.activity.findMany({
       include: {
         ActivityBooking: true,
@@ -17,7 +17,6 @@ async function findActivities() {
 
     await redis.set("activities", JSON.stringify(activities), {
       EX: day,
-      NX: true,
     });
   }
 
