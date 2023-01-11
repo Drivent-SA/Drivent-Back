@@ -12,5 +12,5 @@ export async function connectDb(): Promise<void> {
 
 export async function disconnectDB(): Promise<void> {
   await prisma?.$disconnect();
-  await redis.disconnect();
+  await redis.quit();
 }
