@@ -1,4 +1,4 @@
-import app, { init } from "@/app";
+import app, { close, init } from "@/app";
 import faker from "@faker-js/faker";
 import * as jwt from "jsonwebtoken";
 import httpStatus from "http-status";
@@ -21,6 +21,11 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await cleanDb();
+});
+
+afterAll(async () => {
+  await cleanDb();
+  await close();
 });
 
 const server = supertest(app);
