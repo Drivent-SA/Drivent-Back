@@ -36,8 +36,8 @@ app
   .use("/activities", activitiesRouter)
   .use(handleApplicationErrors);
 
-export function init(): Promise<Express> {
-  connectDb();
+export async function init(): Promise<Express> {
+  await connectDb();
   return Promise.resolve(app);
 }
 
