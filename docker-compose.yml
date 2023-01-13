@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15.1
+    container_name: db_postgres
+    restart: always
+    ports:
+      - 2345:5432
+    env_file:
+      - .env.development
+
+  cache:
+    image: redis:6.2-alpine
+    container_name: db_redis
+    restart: always
+    ports:
+      - 6379:6379
+    depends_on:
+      - db
+    volumes:
+      - cache:/data
+
+  node_app:
+    container_name: node_app
+    build: .
+    ports:
+      - 4002:4000
+    depends_on:
+      - db
+
+volumes:
+  cache:
+    driver: local
