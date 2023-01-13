@@ -40,6 +40,8 @@ async function findActivityBooking(activityId: number) {
 }
 
 async function createActivityBooking(activityId: number, userId: number) {
+  await redis.del("activities");
+
   return await prisma.activityBooking.create({
     data: {
       activityId,
