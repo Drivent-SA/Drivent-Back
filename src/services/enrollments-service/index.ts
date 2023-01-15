@@ -69,7 +69,9 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
 
   const getEnrollment = await enrollmentRepository.findWithAddressByUserId(params.userId)
 
-  await addressRepository.transactionEnrollmentAndAdress(params.userId, enrollment, exclude(enrollment, "userId"),getEnrollment.id, address, address)
+  await addressRepository.transactionEnrollmentAndAdress( 
+    getEnrollment.id, address, address, params.userId, enrollment, exclude(enrollment, "userId") 
+  )
 
 }
 
