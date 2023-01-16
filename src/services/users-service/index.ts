@@ -26,6 +26,7 @@ async function validateUniqueEmailOrFail(email: string) {
 
 async function canEnrollOrFail() {
   const canEnroll = await eventsService.isCurrentEventActive();
+
   if (!canEnroll) {
     throw cannotEnrollBeforeStartDateError();
   }
