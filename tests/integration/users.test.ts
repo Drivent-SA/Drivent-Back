@@ -13,7 +13,12 @@ beforeAll(async () => {
   await cleanDb();
 });
 
+beforeEach(async () => {
+  await cleanDb();
+});
+
 afterAll(async () => {
+  await cleanDb();
   await close();
 });
 
@@ -58,8 +63,7 @@ describe("POST /users", () => {
     });
 
     describe("when event started", () => {
-      beforeAll(async () => {
-        await prisma.event.deleteMany({});
+      beforeEach(async () => {
         await createEvent();
       });
 

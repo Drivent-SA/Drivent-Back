@@ -19,7 +19,8 @@ export async function cleanDb() {
   await prisma.ticketType.deleteMany({});
   await prisma.room.deleteMany({});
   await prisma.hotel.deleteMany({});
-  await redis.flushAll();
+  await redis.del("event");
+  await redis.del("activities");
 }
 
 export async function generateValidToken(user?: User) {

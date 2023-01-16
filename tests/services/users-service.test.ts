@@ -11,6 +11,10 @@ beforeAll(async () => {
   await cleanDb();
 });
 
+afterAll(async () => {
+  await cleanDb();
+});
+
 describe("createUser", () => {
   it("should throw duplicatedUserError if there is a user with given email", async () => {
     const existingUser = await createUserSeed();
