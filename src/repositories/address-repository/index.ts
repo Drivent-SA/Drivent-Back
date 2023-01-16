@@ -14,24 +14,19 @@ async function upsert(enrollmentId: number, createdAddress: CreateAddressParams,
     update: updatedAddress,
   });
 }
-async function transactionEnrollmentAndAdress(
-  enrollmentId: number,
-  createdAddress: CreateAddressParams,
-  updatedAddress: UpdateAddressParams,
-  userId: number,
-  createdEnrollment: CreateEnrollmentParams,
-  updatedEnrollment: UpdateEnrollmentParams,
-  ) {
 
-  const enrollment = prisma.enrollment.upsert({
-      where: {
-        userId,
-      },
-      create: createdEnrollment,
-      update: updatedEnrollment,
+function upsertEnrollment(userId: number, createdEnrollment: CreateEnrollmentParams,  updatedEnrollment: UpdateEnrollmentParams) {
+  return prisma.enrollment.upsert({
+    where: {
+      userId,
+    },
+    create: createdEnrollment,
+    update: updatedEnrollment,
   });
+}
 
-  const adress = prisma.address.upsert({
+function upsertAddress(enrollmentId: number, createdAddress: CreateAddressParams, updatedAddress: UpdateAddressParams) {
+  return prisma.address.upsert({
     where: {
       enrollmentId,
     },
@@ -41,9 +36,19 @@ async function transactionEnrollmentAndAdress(
     },
     update: updatedAddress,
   });
+}
 
-  return prisma.$transaction([enrollment, adress])
-  
+async function transactionEnrollmentAndAdress(
+  createdAddress: CreateAddressParams,
+  updatedAddress: UpdateAddressParams,
+  userId: number,
+  createdEnrollment: CreateEnrollmentParams,
+  updatedEnrollment: UpdateEnrollmentParams,
+) {
+  return prisma.$transaction(async () => {
+    const enrollment = await upsertEnrollment(userId, createdEnrollment, updatedEnrollment);
+    await upsertAddress(enrollment.id, createdAddress, updatedAddress);
+  });
 }
 
 export type CreateEnrollmentParams = Omit<Enrollment, "id" | "createdAt" | "updatedAt">;
