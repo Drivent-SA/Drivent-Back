@@ -67,9 +67,9 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     throw notFoundError();
   }
 
-  const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, "userId"));
-
-  await addressRepository.upsert(newEnrollment.id, address, address);
+  await addressRepository.transactionEnrollmentAndAdress( 
+    address, address, params.userId, enrollment, exclude(enrollment, "userId") 
+  );
 }
 
 function getAddressForUpsert(address: CreateAddressParams) {
